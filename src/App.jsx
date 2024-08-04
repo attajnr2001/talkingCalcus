@@ -42,7 +42,6 @@ const App = () => {
           .map((result) => result.transcript)
           .join("");
 
-        setTranscript(currentTranscript);
         processCommand(currentTranscript);
       };
     } catch (error) {
@@ -72,18 +71,31 @@ const App = () => {
     );
   }
 
+  const speakResult = (text) => {
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.lang = "en-US";
+    speech.onend = () => {
+      if (isListening) {
+        toggleListening();
+      }
+    };
+    window.speechSynthesis.speak(speech);
+  };
+
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current.stop();
-    } else {
+      setIsListening(false);
+    } else if (!window.speechSynthesis.speaking) {
       recognitionRef.current.start();
+      setIsListening(true);
     }
-    setIsListening(!isListening);
   };
 
   const processCommand = (command) => {
-    if (command.toLowerCase().includes("")) {
-      let expression = command.toLowerCase().trim();
+    const trimmedCommand = command.toLowerCase().trim();
+    if (trimmedCommand.endsWith("solve")) {
+      let expression = trimmedCommand.slice(0, -5).trim(); // Remove "solve" from the end
       expression = convertSpokenPunctuation(expression);
       try {
         let calculatedResult;
@@ -92,10 +104,17 @@ const App = () => {
         } else {
           calculatedResult = evaluateSimpleExpression(expression);
         }
-        setResult(calculatedResult.toString());
+        const resultString = calculatedResult.toString();
+        setResult(resultString);
+        speakResult(`The result is ${resultString}`);
       } catch (error) {
-        setResult("Error in calculation: " + error.message);
+        const errorMessage = "Error in calculation: " + error.message;
+        setResult(errorMessage);
+        speakResult(errorMessage);
       }
+    } else {
+      // Just update the transcript without calculating
+      setTranscript(command);
     }
   };
 
@@ -153,7 +172,6 @@ const App = () => {
   };
 
   const evaluateExpression = (expr) => {
-    // Remove spaces
     expr = expr.replace(/\s+/g, "");
 
     const tokens = tokenize(expr);
