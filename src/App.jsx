@@ -225,8 +225,21 @@ const App = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ mt: 4, p: 4 }}>
+    <Container
+      maxWidth="sm"
+      sx={{
+        backgroundImage: `url('https://img.freepik.com/free-vector/seamless-pattern-with-school-office-stationery_107791-9568.jpg?t=st=1722737004~exp=1722740604~hmac=2f3ad6e11707c29e7fdbc4b0ec0d776c820780cc9c969928147219332f9adccd&w=740')`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+        padding: "20px",
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{ mt: 4, p: 4, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+      >
         <Box
           display="flex"
           alignItems="center"
