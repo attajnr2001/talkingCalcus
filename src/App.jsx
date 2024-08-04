@@ -94,8 +94,9 @@ const App = () => {
 
   const processCommand = (command) => {
     const trimmedCommand = command.toLowerCase().trim();
-    if (trimmedCommand.endsWith("solve")) {
-      let expression = trimmedCommand.slice(0, -5).trim(); // Remove "solve" from the end
+    console.log(trimmedCommand)
+    if (trimmedCommand.endsWith("is")) {
+      let expression = trimmedCommand.slice(0, -2).trim(); 
       expression = convertSpokenPunctuation(expression);
       try {
         let calculatedResult;
@@ -106,7 +107,7 @@ const App = () => {
         }
         const resultString = calculatedResult.toString();
         setResult(resultString);
-        speakResult(`The result is ${resultString}`);
+        speakResult(`${resultString}`);
       } catch (error) {
         const errorMessage = "Error in calculation: " + error.message;
         setResult(errorMessage);
