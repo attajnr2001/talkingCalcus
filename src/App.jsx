@@ -292,7 +292,7 @@ const App = () => {
           mb={3}
         >
           <Typography variant="h5" fontWeight={"bold"} gutterBottom>
-            EWUSCO TALKING CALCULATOR
+            EWUSCO TALKING CALCULATOR 1.0
           </Typography>
           <Calculate fontSize="large" color="primary" />
         </Box>
