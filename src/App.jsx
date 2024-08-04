@@ -83,10 +83,7 @@ const App = () => {
 
   const processCommand = (command) => {
     if (command.toLowerCase().includes("")) {
-      let expression = command
-        .toLowerCase()
-        .replace(/^.*calculate/, "")
-        .trim();
+      let expression = command.toLowerCase().trim();
       expression = convertSpokenPunctuation(expression);
       try {
         let calculatedResult;
