@@ -332,7 +332,7 @@ const App = () => {
           mb={3}
         >
           <Typography variant="h5" fontWeight={"bold"} gutterBottom>
-            VOICE AUTOMATED CALCULATOR
+            VOICE AUTOMATED CALCULATOR 1.0
           </Typography>
           <Calculate fontSize="large" color="primary" />
         </Box>
