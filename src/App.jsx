@@ -36,13 +36,22 @@ const App = () => {
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = "en-US";
 
-      recognitionRef.current.onresult = (event) => {
-        const currentTranscript = Array.from(event.results)
-          .map((result) => result[0])
-          .map((result) => result.transcript)
-          .join("");
+      const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => func(...args), delay);
+        };
+      };
 
-        processCommand(currentTranscript);
+      const debouncedProcessCommand = debounce(processCommand, 300);
+
+      recognitionRef.current.onresult = (event) => {
+        const lastResult = event.results[event.results.length - 1];
+        if (lastResult.isFinal) {
+          const currentTranscript = lastResult[0].transcript;
+          debouncedProcessCommand(currentTranscript);
+        }
       };
     } catch (error) {
       console.error("Error initializing speech recognition:", error);
@@ -93,7 +102,7 @@ const App = () => {
   };
 
   const processCommand = (command) => {
-    const trimmedCommand = removeDuplicateWords(command.toLowerCase().trim());
+    const trimmedCommand = command.toLowerCase().trim();
     console.log(trimmedCommand);
     if (trimmedCommand.endsWith("is")) {
       let expression = trimmedCommand.slice(0, -2).trim();
@@ -267,32 +276,6 @@ const App = () => {
     }
 
     return stack[0];
-  };
-
-  const debounce = (func, delay) => {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  };
-
-  const processCommandDebounced = debounce(processCommand, 500);
-
-  recognitionRef.current.onresult = (event) => {
-    const currentTranscript = Array.from(event.results)
-      .map((result) => result[0])
-      .map((result) => result.transcript)
-      .join("");
-
-    processCommandDebounced(currentTranscript);
-  };
-
-  const removeDuplicateWords = (str) => {
-    return str
-      .split(" ")
-      .filter((item, pos, self) => self.indexOf(item) === pos)
-      .join(" ");
   };
 
   return (
