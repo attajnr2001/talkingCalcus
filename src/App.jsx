@@ -32,8 +32,8 @@ const App = () => {
     try {
       recognitionRef.current = new SpeechRecognition();
 
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = "en-US";
 
       recognitionRef.current.onresult = (event) => {
@@ -93,10 +93,10 @@ const App = () => {
   };
 
   const processCommand = (command) => {
-    const trimmedCommand = command.toLowerCase().trim();
-    console.log(trimmedCommand)
+    const trimmedCommand = removeDuplicateWords(command.toLowerCase().trim());
+    console.log(trimmedCommand);
     if (trimmedCommand.endsWith("is")) {
-      let expression = trimmedCommand.slice(0, -2).trim(); 
+      let expression = trimmedCommand.slice(0, -2).trim();
       expression = convertSpokenPunctuation(expression);
       try {
         let calculatedResult;
@@ -267,6 +267,32 @@ const App = () => {
     }
 
     return stack[0];
+  };
+
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    };
+  };
+
+  const processCommandDebounced = debounce(processCommand, 500);
+
+  recognitionRef.current.onresult = (event) => {
+    const currentTranscript = Array.from(event.results)
+      .map((result) => result[0])
+      .map((result) => result.transcript)
+      .join("");
+
+    processCommandDebounced(currentTranscript);
+  };
+
+  const removeDuplicateWords = (str) => {
+    return str
+      .split(" ")
+      .filter((item, pos, self) => self.indexOf(item) === pos)
+      .join(" ");
   };
 
   return (
