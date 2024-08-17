@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 import { Mic, MicOff, Calculate } from "@mui/icons-material";
+import annyang from "annyang";
 
 const App = () => {
   const [result, setResult] = useState("");
@@ -18,49 +19,80 @@ const App = () => {
   const recognitionRef = useRef(null);
   const [isSupported, setIsSupported] = useState(true);
 
-  useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+  // useEffect(() => {
+  //   const SpeechRecognition =
+  //     window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
+  //   if (!SpeechRecognition) {
+  //     setIsSupported(false);
+  //     console.error("Speech recognition not supported");
+  //     setResult("Speech recognition not supported in this browser");
+  //     return;
+  //   }
+
+  //   try {
+  //     recognitionRef.current = new SpeechRecognition();
+
+  //     recognitionRef.current.continuous = false;
+  //     recognitionRef.current.interimResults = false;
+  //     recognitionRef.current.lang = "en-US";
+
+  //     const debounce = (func, delay) => {
+  //       let timeoutId;
+  //       return (...args) => {
+  //         clearTimeout(timeoutId);
+  //         timeoutId = setTimeout(() => func(...args), delay);
+  //       };
+  //     };
+
+  //     const debouncedProcessCommand = debounce(processCommand, 300);
+
+  //     recognitionRef.current.onresult = (event) => {
+  //       const lastResult = event.results[event.results.length - 1];
+  //       if (lastResult.isFinal) {
+  //         const currentTranscript = lastResult[0].transcript;
+  //         debouncedProcessCommand(currentTranscript);
+  //       }
+  //     };
+  //   } catch (error) {
+  //     console.error("Error initializing speech recognition:", error);
+  //     setResult("Error initializing speech recognition");
+  //   }
+
+  //   return () => {
+  //     if (recognitionRef.current) {
+  //       recognitionRef.current.stop();
+  //     }
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    if (annyang) {
+      // Define our commands
+      const commands = {
+        "*query": processCommand,
+      };
+
+      // Add our commands to annyang
+      annyang.addCommands(commands);
+
+      // Set the language
+      annyang.setLanguage("en-US");
+
+      // Error handling
+      annyang.addCallback("error", function (err) {
+        console.error("Speech recognition error:", err);
+        setResult("Error in speech recognition");
+      });
+    } else {
       setIsSupported(false);
       console.error("Speech recognition not supported");
       setResult("Speech recognition not supported in this browser");
-      return;
-    }
-
-    try {
-      recognitionRef.current = new SpeechRecognition();
-
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = "en-US";
-
-      const debounce = (func, delay) => {
-        let timeoutId;
-        return (...args) => {
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => func(...args), delay);
-        };
-      };
-
-      const debouncedProcessCommand = debounce(processCommand, 300);
-
-      recognitionRef.current.onresult = (event) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          const currentTranscript = lastResult[0].transcript;
-          debouncedProcessCommand(currentTranscript);
-        }
-      };
-    } catch (error) {
-      console.error("Error initializing speech recognition:", error);
-      setResult("Error initializing speech recognition");
     }
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
+      if (annyang) {
+        annyang.abort();
       }
     };
   }, []);
@@ -93,10 +125,10 @@ const App = () => {
 
   const toggleListening = () => {
     if (isListening) {
-      recognitionRef.current.stop();
+      annyang.abort();
       setIsListening(false);
     } else if (!window.speechSynthesis.speaking) {
-      recognitionRef.current.start();
+      annyang.start({ autoRestart: false, continuous: false });
       setIsListening(true);
     }
   };
@@ -104,6 +136,8 @@ const App = () => {
   const processCommand = (command) => {
     const trimmedCommand = command.toLowerCase().trim();
     console.log(trimmedCommand);
+    setTranscript(trimmedCommand);
+
     if (trimmedCommand.endsWith("is")) {
       let expression = trimmedCommand.slice(0, -2).trim();
       expression = convertSpokenPunctuation(expression);
@@ -122,9 +156,6 @@ const App = () => {
         setResult(errorMessage);
         speakResult(errorMessage);
       }
-    } else {
-      // Just update the transcript without calculating
-      setTranscript(command);
     }
   };
 
